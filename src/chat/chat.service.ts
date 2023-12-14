@@ -505,7 +505,7 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
       }
     })
 
-    if (!channelOnUser || !_requester || !_requester.isOwner || channelOnUser.isAdmin)
+    if (!channelOnUser || channelOnUser.isBanned || !_requester || !_requester.isOwner || channelOnUser.isAdmin)
       return false;
     await this.prisma.channelOnUser.update({
         where: {

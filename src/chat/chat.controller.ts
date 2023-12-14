@@ -418,6 +418,13 @@ export class ChatController {
         }
     }
 
+    @Post('joinChannel')
+    @UseGuards(JwtAuth)
+    async joinChannelRequest(@Req() req: Request & {user : UserDto}, @Body('channelName') channelName : string, @Res() res: Response) : Promise<any> {
+        console.log(channelName);
+        res.status(200);
+    } 
+
     @Post('accepteInvite')
     @UseGuards(JwtAuth)
     async accepteInvite(@Req() req: Request & {user : UserDto}, @Body('username') username : string, @Res() res: Response) : Promise<any> {

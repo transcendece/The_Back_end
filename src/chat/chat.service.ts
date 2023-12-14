@@ -93,14 +93,22 @@ export class ChannelsService {
       include : {
           channel : {
               include : {
-                 users : true,
+                 users : {
+                  include : {
+                    user : {
+                      select : {
+                        username : true,
+                      }
+                    }
+                  }
+                 },
               }
           },
       },
   });
-
+  // return data
   let channelSettingsArray: _channelSettings[] = [];
-
+  console.log(data);
   data.forEach((channelData) => {
       let channelSettingsInstance = new _channelSettings();
       channelSettingsInstance.channelName = channelData.channel.name;
@@ -110,16 +118,18 @@ export class ChannelsService {
       channelSettingsInstance.mutedUsers = [];
 
       channelData.channel.users.forEach((userData) => {
+        console.log("user : ", userData);
+        
           if (userData.isAdmin) {
-              channelSettingsInstance.admins.push(userData.userId);
+              channelSettingsInstance.admins.push(userData.user.username);
           }
           if (userData.isBanned) {
-              channelSettingsInstance.bandUsers.push(userData.userId);
+              channelSettingsInstance.bandUsers.push(userData.user.username);
           }
           if (userData.isMuted) {
-              channelSettingsInstance.mutedUsers.push(userData.userId);
+              channelSettingsInstance.mutedUsers.push(userData.user.username);
           }
-          channelSettingsInstance.users.push(userData.userId);
+          channelSettingsInstance.users.push(userData.user.username);
       });
 
       channelSettingsArray.push(channelSettingsInstance);

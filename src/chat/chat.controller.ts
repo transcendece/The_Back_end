@@ -108,6 +108,24 @@ export class ChatController {
         }
     }
     
+    @Post('channelSearch')
+    @UseGuards(JwtAuth)
+    async channelSearch(@Req() req: Request & {user : UserDto}, @Res() res: Response, @Body('message') message : string ) : Promise<any> {
+        try {
+            console.log("recieved : ", message);
+            let response : string[] = await this.channel.channelSearchResults(message)
+            if (response) {
+                res.status(200).json(response);
+            }
+            else {
+                res.status(400).json(response);
+            }
+        }
+        catch (error) {
+            res.status(400)
+        }
+    }
+
     @Post('channel')
     @UseGuards(JwtAuth)
     async getChannelsMessages(@Req() req: Request & {user : UserDto}, @Body('_channel') _channel : string, @Res() res: Response) : Promise<any> {

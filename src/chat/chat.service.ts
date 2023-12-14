@@ -34,6 +34,20 @@ export type ChannelOnUserCreateInput = {
 export class ChannelsService {
  constructor(private prisma: PrismaService) {}
 
+    async channelSearchResults(channel : string) : Promise<string[]> {
+      let data : channelDto[] = await this.prisma.channel.findMany({
+        where : {
+          name : channel,
+          IsPrivate : false
+        }
+      })
+      let response : string[] = []
+      data.map((element)=> {
+        response.push(element.name)
+      })
+      return response
+    }  
+
     async createChannel(channelName: string, ownerId: string, Private: boolean , hasPass : boolean, Pass : string) {
       try {
         let checkIfChannelExist : channelDto = await this.prisma.channel.findFirst({where : {
@@ -399,7 +413,8 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
           },
         },
         data : {
-          isBanned : true
+          isBanned : true,
+          isAdmin : false,
         }
       });
       return true;

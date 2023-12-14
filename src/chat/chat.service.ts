@@ -9,6 +9,7 @@ import { channelOnUser } from 'src/DTOs/channel/channelOnUser.dto';
 import { channelSettings } from 'src/DTOs/settings/setting.channel.dto';
 import { type } from 'os';
 import { plainToClass } from "class-transformer";
+import { errorUtil } from 'zod/lib/helpers/errorUtil';
 
 export type ChannelOnUserCreateInput = {
   userId: string;
@@ -27,11 +28,6 @@ export type ChannelOnUserCreateInput = {
   admins     : string[];
   mutedUsers : string[];
 }
-
-
- export type channelSettingsData = {
-
- };
 
 @Injectable()
 export class ChannelsService {
@@ -82,6 +78,26 @@ export class ChannelsService {
     }
      }
      
+
+
+     async getUserChannelNames(id : string) : Promise<string[]> {
+      let data = await this.prisma.channelOnUser.findMany({
+        where : {
+          userId : id,
+        },
+        include :{
+          channel : {
+            select : {
+              name : true,
+            }
+          }
+        }
+      });
+      let channelNames : string[] = data.map(item => item.channel.name);
+   
+      return channelNames;
+   }
+   
 
 
   async getChannelSettingsData(userId : string) : Promise<any> {

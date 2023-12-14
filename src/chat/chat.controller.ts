@@ -17,7 +17,7 @@ import { JwtAuth } from "src/auth/Guards/jwt.guard";
 import { channelSettings } from "src/DTOs/settings/setting.channel.dto";
 import { ConversationDto } from "src/DTOs/conversation/conversation.dto";
 import { UserSettingsDto } from "src/DTOs/settings/settings.user.dto";
-import channelsAsConversations from "src/DTOs/channel/channel.response.dto";
+import channelsAsConversations, { channelData } from "src/DTOs/channel/channel.response.dto";
 import { use } from "passport";
 
 
@@ -84,50 +84,42 @@ export class ChatController {
         }
     }
 
-    // @Get('channel')
-    // @UseGuards(JwtAuth)
-    // async getChannels(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
-    //     try {
-    //         console.log("Sending data to : ", req.user.username);
-            
-    //         let channelRes : channelsAsConversations = {
-    //             channels : [],
-    //             username : req.user.username,
-    //         }
-    //         let data : channelDto[] = await this.channel.getUserChannels(req.user.username);
-    //         if (data) {
-    //             for (let index: number = 0; index < data.length; index++) {
-    //                 channelRes.channels.push({
-    //                     messages : [],
-    //                     channelName : data[index].name
-    //                 })
-    //             }
-    //             res.status(200).json(channelRes)
-    //             return
-    //         }
-    //         else{
-    //             res.sendStatus(400)
-    //             throw "invalid data .."
-    //         }
-    //     }
-    //     catch (error) {
-    //         res.status(400)
-    //     }
-    // }
+    @Get('channel')
+    @UseGuards(JwtAuth)
+    async getChannels(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
+        try {
+            console.log("Sending data to : ", req.user.username);
+            let channelData : channelData[] = [];
+            let data = await this.channel.getUserChannelNames(req.user.id);
+            if (data){
+                data.map((name)=> {
+                    channelData.push({
+                        channelName : name,
+                        messages : []
+                    })
+                })
+                res.status(200).json({"username" : req.user.username ,"channels" : channelData});
+            }
+            else
+                res.status(400);
+        }
+        catch (error) {
+            res.status(400)
+        }
+    }
     
-    // @Post('channel')
-    // @UseGuards(JwtAuth)
-    // async getChannelsMessages(@Req() req: Request & {user : UserDto}, @Body('_channel') _channel : string, @Res() res: Response) : Promise<any> {
-    //     try {
-    //         console.log("recieved : ",_channel);
-            
-    //         let data : channelMessageDto[] =  await this.channel.getChannelMessages(_channel)
-    //         res.status(200).json(data);
-    //     } catch (error) {
-    //         console.log("erroriiiiiii ");
-    //         res.status(400);
-    //     }
-    // }
+    @Post('channel')
+    @UseGuards(JwtAuth)
+    async getChannelsMessages(@Req() req: Request & {user : UserDto}, @Body('_channel') _channel : string, @Res() res: Response) : Promise<any> {
+        try {
+            console.log("recieved : ",_channel);
+            let data : channelMessageDto[] =  await this.channel.getChannelMessages(_channel)
+            res.status(200).json(data);
+        } catch (error) {
+            console.log("erroriiiiiii ");
+            res.status(400);
+        }
+    }
 
     @Get('channelSettings')
     @UseGuards(JwtAuth)

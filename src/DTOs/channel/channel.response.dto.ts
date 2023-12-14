@@ -5,7 +5,7 @@ export class channelsAsConversations {
     username : string;
 };
 
-class channelData {
+export class channelData {
     messages : channelMessageDto[];
     channelName : string;
 }

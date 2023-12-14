@@ -546,7 +546,7 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
 
     let requsterChannelOnUser : channelOnUser = await this.prisma.channelOnUser.findFirst({
       where : {
-        userId : existingUser.id,
+        userId : requester,
         channelId : existingChannel.id,
       }
     })

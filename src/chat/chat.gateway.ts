@@ -10,6 +10,7 @@ import { messageRepository } from "src/modules/message/message.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { chatDto } from "src/DTOs/chat/chat.dto";
+import { send } from "process";
 
 @WebSocketGateway(8888, {
   cors: {
@@ -86,62 +87,57 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           }
       }
 
-      // @SubscribeMessage('channelMessage')
-      // async handleChannelMessage(@MessageBody() message: channelMessageDto,@ConnectedSocket() client : Socket) {
-      //   try {
-      //     console.log("0 ===> ", message);
+      @SubscribeMessage('channelMessage')
+      async handleChannelMessage(@MessageBody() message: channelMessageDto,@ConnectedSocket() client : Socket) {
+        try {
+          console.log("0 ===> ", message);
           
-      //     let cookie : string = client.client.request.headers.cookie;
-      //       if (cookie) {
-      //         const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
-      //         let user;
-      //         user = await this.jwtService.verify(jwt);
-      //         if (user) {
-      //           console.log("1");
+          let cookie : string = client.client.request.headers.cookie;
+            if (cookie) {
+              const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+              let user;
+              user = await this.jwtService.verify(jwt);
+              if (user) {
+                console.log("1");
                 
-      //           const _user = await this.user.getUserById(user.sub)
-      //           if (_user) {
-      //             if (!_user.achievements.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png')) {
-      //               await this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png', _user.id)
-      //             }
-      //             let channel : channelDto = await this.channel.getChannelByName(message.channelName)
-      //             if (channel && channel.users.includes(_user.username))  {
-      //               let muted : boolean = await this.channel.isMuted(_user.username, channel.id)
-      //               console.log("3");
-      //               message.sender = _user.username
-      //               if (!muted) {
-      //                 console.log("storing channel message : ", message);
-                      
-      //                 await this.channel.createChannelMessage(message)
-      //                 channel.users.forEach(async (__user) => {
-      //                     let tmp : UserDto = await this.user.getUserByUsername(__user)
-      //                     if (tmp) {
-      //                       let socket: Socket = this.clientsMap.get(tmp.id)
-      //                       if (socket) {
-      //                         console.log("emiting to : ", __user);
-      //                         socket.emit('channelMessage', message);
-      //                       }
-      //                     }
-      //                 })
-      //               }
-      //             }
-      //             else {
-      //         console.log("4");
-      //         let socket: Socket = this.clientsMap.get(_user.id)
-      //             if (socket) {
-      //                 socket.emit('ERROR', 'SERVER : your not in channel .');
-      //              }
-      //           }
-      //       }
-      //     }
-      //   }
-      //   else
-      //     throw('unAuthorized Action ....')
-      // }
-      //   catch (error) {
-      //     console.log(error);
-      //   }
-      // }
+                const _user = await this.user.getUserById(user.sub)
+                if (_user) {
+                  if (!_user.achievements.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png')) {
+                    await this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png', _user.id)
+                  }
+
+                  let check : boolean = await this.channel.canSendMessageToChannel(_user.id, message.channelName)
+                  let sent : boolean = false;
+                  if (check) {
+                    let channelUsersIds : string[] = await this.channel.getChannelUsersId(message.channelName)
+                    channelUsersIds.map((id)=> {
+                      let socket: Socket = this.clientsMap.get(id)
+                      if (socket) {
+                        message.sender = _user.username
+                        sent = true;
+                        socket.emit("channelMessage", message)
+                      }
+                    })
+                  } else {
+                    console.log('no channel found');
+                    let socket : Socket = this.clientsMap.get(_user.id)
+                    if (socket){
+                      socket.emit("ERROR", "you can't Send Messages on this channel .... ")
+                    }
+                  }
+                  if (sent) {
+                    await this.channel.createChannelMessage(message);
+                  }
+            }
+          }
+        }
+        else
+          throw('unAuthorized Action ....')
+      }
+        catch (error) {
+          console.log(error);
+        }
+      }
 
       @SubscribeMessage('SendMessage')
         async hanldeMessage(@MessageBody() message: messageDto, @ConnectedSocket() client : Socket) {

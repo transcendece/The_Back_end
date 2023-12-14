@@ -10,6 +10,7 @@ import { channelSettings } from 'src/DTOs/settings/setting.channel.dto';
 import { type } from 'os';
 import { plainToClass } from "class-transformer";
 import { errorUtil } from 'zod/lib/helpers/errorUtil';
+import { is } from 'valibot';
 
 export type ChannelOnUserCreateInput = {
   userId: string;
@@ -94,10 +95,30 @@ export class ChannelsService {
         }
       });
       let channelNames : string[] = data.map(item => item.channel.name);
-   
       return channelNames;
    }
    
+
+
+  async getChannelUsersId(channel :string ) : Promise<string[]> {
+    let data = await this.prisma.channelOnUser.findMany({
+      where : {
+        channel : {
+          name : channel,
+        }
+      }
+    })
+    let ids : string[] = []
+    if (data) {
+
+      data.map((user)=> {
+        ids.push(user.userId)
+      })
+      return ids;
+    }
+    else
+      return []
+  }
 
 
   async getChannelSettingsData(userId : string) : Promise<any> {
@@ -368,7 +389,7 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
           channelId : channel.id,
       }
     })
-    if (!channelOnUser || channelOnUser.isBanned || !channelOnUser.isOwner || !_requester || !_requester.isAdmin)
+    if (!channelOnUser || channelOnUser.isBanned || channelOnUser.isOwner || !_requester || !_requester.isAdmin)
       return false;
       await this.prisma.channelOnUser.update({
         where: {
@@ -672,4 +693,24 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
   console.log(tmp);
   return tmp
  }
+
+ async canSendMessageToChannel(id : string, channelName : string) : Promise<boolean> {
+  try {
+    let user : channelOnUser = await this.prisma.channelOnUser.findFirst({
+      where : {
+        userId : id,
+        channel : {
+          name : channelName,
+        }
+      }
+    })
+    if (!user || user.isBanned || user.isMuted)
+    return false
+  return true
+  }
+  catch (error) {
+    return false;
+  }
  }
+ }
+

@@ -37,7 +37,9 @@ export class ChannelsService {
     async channelSearchResults(channel : string) : Promise<string[]> {
       let data : channelDto[] = await this.prisma.channel.findMany({
         where : {
-          name : channel,
+          name : {
+            contains : channel
+        },
           IsPrivate : false
         }
       })
@@ -45,6 +47,7 @@ export class ChannelsService {
       data.map((element)=> {
         response.push(element.name)
       })
+      console.log(response);
       return response
     }  
 
@@ -171,16 +174,18 @@ export class ChannelsService {
       channelData.channel.users.forEach((userData) => {
         console.log("user : ", userData);
         
-          if (userData.isAdmin) {
+          if (userData.isAdmin && !userData.isBanned) {
               channelSettingsInstance.admins.push(userData.user.username);
           }
           if (userData.isBanned) {
               channelSettingsInstance.bandUsers.push(userData.user.username);
           }
-          if (userData.isMuted) {
+          if (userData.isMuted && !userData.isBanned) {
               channelSettingsInstance.mutedUsers.push(userData.user.username);
           }
-          channelSettingsInstance.users.push(userData.user.username);
+          if (!userData.isBanned) {
+            channelSettingsInstance.users.push(userData.user.username);
+          }
       });
 
       channelSettingsArray.push(channelSettingsInstance);

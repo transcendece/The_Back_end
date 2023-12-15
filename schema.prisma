@@ -55,6 +55,7 @@ model Channel {
   IsProtected           Boolean ?
   password              String ?
   passwordHash          String ?
+  channelMessages       ChannelMessage[]
 }
 
 model Friend {
@@ -103,6 +104,8 @@ model ChannelMessage {
   sender                String
   content               String
   channelName           String
+  channelId             String
+  channel               Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }
 
 model Match {

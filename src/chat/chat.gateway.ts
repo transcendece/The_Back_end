@@ -11,6 +11,7 @@ import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { chatDto } from "src/DTOs/chat/chat.dto";
 import { send } from "process";
+import { channelOnUser } from "src/DTOs/channel/channelOnUser.dto";
 
 @WebSocketGateway(8888, {
   cors: {
@@ -91,21 +92,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       async handleChannelMessage(@MessageBody() message: channelMessageDto,@ConnectedSocket() client : Socket) {
         try {
           console.log("0 ===> ", message);
-          
           let cookie : string = client.client.request.headers.cookie;
-            if (cookie) {
-              const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
-              let user;
-              user = await this.jwtService.verify(jwt);
-              if (user) {
-                console.log("1");
-                
-                const _user = await this.user.getUserById(user.sub)
-                if (_user) {
+          if (cookie) {
+            const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+            let user;
+            user = await this.jwtService.verify(jwt);
+            if (user) {
+              console.log("1");
+              
+              const _user = await this.user.getUserById(user.sub)
+              if (_user) {
+                  let channelId : string = "";
                   if (!_user.achievements.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png')) {
                     await this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png', _user.id)
                   }
-
+                  let tmpChannel : channelDto = await this.channel.getChannelByName(message.channelName)
+                  if (tmpChannel) {
+                    channelId = tmpChannel.id;
+                  }
                   let check : boolean = await this.channel.canSendMessageToChannel(_user.id, message.channelName)
                   let sent : boolean = false;
                   if (check) {
@@ -126,7 +130,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
                     }
                   }
                   if (sent) {
-                    await this.channel.createChannelMessage(message);
+                    await this.channel.createChannelMessage(message, channelId);
                   }
             }
           }

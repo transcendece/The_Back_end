@@ -54,9 +54,8 @@ export class ChannelsService {
       }})
       if (checkIfChannelExist)
         return null
-      if (channelData.IsProtected && !channelData.password.length) {
+      if ((channelData.IsProtected && !channelData.password.length) || channelData.name.length === 0) {
         console.log("no pass ...");
-        
         return
       }
       let _tmp : string[] = ['','']
@@ -363,7 +362,7 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
 }
 
 
-  async createChannelMessage(message : channelMessageDto) : Promise<any> {
+  async createChannelMessage(message : channelMessageDto, channelId : string) : Promise<any> {
    console.log('message recieved in channel : ',message);
    if (message) {
      console.log('creating channel message', message);
@@ -371,11 +370,17 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
        sender : message.sender,
        content : message.content,
        channelName : message.channelName,
+       channel : {
+        connect : {
+          id : channelId,
+        }
+       }
      }})
-     
    }
   }
 
+  
+  
   async UndoMuteForUser(userId : string, channelId : string) : Promise<boolean> {
     let UserToCheck : channelOnUser = await this.prisma.channelOnUser.findFirst({
       where : {

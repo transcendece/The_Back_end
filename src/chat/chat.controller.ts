@@ -257,7 +257,6 @@ export class ChatController {
 
     @Post('createChannel')
     @UseGuards(JwtAuth)
-    // name, password, isPrivate, isProtected
     async createChannel(@Body('name') name : string,  @Body('password') password : string, @Body('isPrivate') isPrivate : boolean, @Body('isProtected') isProtected : boolean, @Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
         try {
             let test : channelDto = await this.channel.createChannel(req.user.id, {

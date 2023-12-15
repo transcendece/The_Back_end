@@ -6,7 +6,7 @@ import { converationRepositroy } from "src/modules/conversation/conversation.rep
 import { FriendsRepository } from "src/modules/friends/friends.repository";
 import { InvitesRepository } from "src/modules/invites/invites.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
-import { ChannelsService } from "./chat.service";
+import { ChannelsService, channelSearchType } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
 import { Request, Response } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
@@ -110,8 +110,8 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async channelSearch(@Req() req: Request & {user : UserDto}, @Res() res: Response, @Body('message') message : string ) : Promise<any> {
         try {
-            console.log("recieved : ", message);
-            let response : string[] = await this.channel.channelSearchResults(message)
+            // console.log("recieved : ", message);
+            let response : channelSearchType[] = await this.channel.channelSearchResults(message)
             if (response) {
                 res.status(200).json(response);
             }
@@ -425,7 +425,7 @@ export class ChatController {
     @Post('joinChannel')
     @UseGuards(JwtAuth)
     async joinChannelRequest(@Req() req: Request & {user : UserDto}, @Body('channelName') channelName : string, @Res() res: Response) : Promise<any> {
-        console.log(channelName);
+        console.log("=======> ", channelName);
         res.status(200);
     } 
 

@@ -10,8 +10,6 @@ import { messageRepository } from "src/modules/message/message.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { chatDto } from "src/DTOs/chat/chat.dto";
-import { send } from "process";
-import { channelOnUser } from "src/DTOs/channel/channelOnUser.dto";
 
 @WebSocketGateway(8888, {
   cors: {

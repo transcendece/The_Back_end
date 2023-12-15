@@ -5,6 +5,13 @@ import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { channelOnUser } from 'src/DTOs/channel/channelOnUser.dto';
+import e from 'express';
+
+
+export type channelSearchType = {
+  name : string;
+  isProtected : boolean;
+};
 
 export type ChannelOnUserCreateInput = {
   userId: string;
@@ -28,7 +35,7 @@ export type ChannelOnUserCreateInput = {
 export class ChannelsService {
  constructor(private prisma: PrismaService) {}
 
-    async channelSearchResults(channel : string) : Promise<string[]> {
+    async channelSearchResults(channel : string) : Promise<channelSearchType[]> {
       let data : channelDto[] = await this.prisma.channel.findMany({
         where : {
           name : {
@@ -37,9 +44,12 @@ export class ChannelsService {
           IsPrivate : false
         }
       })
-      let response : string[] = []
+      let response : channelSearchType[] = [];
       data.map((element)=> {
-        response.push(element.name)
+        response.push({
+          name : element.name,
+          isProtected : element.IsProtected,
+        });
       })
       console.log(response);
       return response

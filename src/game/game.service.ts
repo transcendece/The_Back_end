@@ -51,9 +51,9 @@ export class GameService{
     maxScore        :number;
     maxTime         :number; // in minutes
 
-    constructor(client: Socket,gameId: string , map: gameMaps, mode: gameMods){
+    constructor(client: Socket,clientId: string,gameId: string , map: gameMaps, mode: gameMods){
         this.id = gameId;
-        this.player1Id = client.id;
+        this.player1Id = clientId;
         this.client1 = client;
         this.map = map;
         this.mode = mode;
@@ -182,9 +182,9 @@ export class GameService{
                 }
             });
             if (this.score1 === maxScore || this.score2 === maxScore ){
+                this.stop();
                 this.score1 === maxScore ? this.client1.emit("WinOrLose", {content: "win"}) : this.client2.emit("WinOrLose", {content: "win"});
                 this.score1 === maxScore ? this.client2.emit("WinOrLose", {content: "lose"}) : this.client1.emit("WinOrLose", {content: "lose"});
-                this.stop();
             }
         })}
         catch (error) {
@@ -225,6 +225,8 @@ export class GameService{
     }
     public setPlayer2(sock: Socket, id: string){
         this.player2Id = id;
+        console.log("added id : ", id);
+        
         this.client2 = sock;
     }
     public getPlayer1(): Socket {

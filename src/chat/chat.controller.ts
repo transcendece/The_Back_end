@@ -270,7 +270,7 @@ export class ChatController {
                 console.log("created channel : ", test);
                 if (!req.user.achievements.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699323620/qodwzbr6cxd74m14i4ad.png'))
                     this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699323620/qodwzbr6cxd74m14i4ad.png', req.user.id)
-                res.status(200).json(test.name)
+                res.status(200).json({"channelName": test.name, "users" : [], "bandUsers": [], "admins": [req.user.username], "mutedUsers" : []})
             }
             else
                 res.status(400).json("can't create channel ....")

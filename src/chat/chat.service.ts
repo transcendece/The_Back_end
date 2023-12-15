@@ -1,16 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { MutedUserDto } from 'src/DTOs/User/mutedUser.dto';
 import { UserDto } from 'src/DTOs/User/user.dto';
 import { channelDto } from 'src/DTOs/channel/channel.dto';
 import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { channelOnUser } from 'src/DTOs/channel/channelOnUser.dto';
-import { channelSettings } from 'src/DTOs/settings/setting.channel.dto';
-import { type } from 'os';
-import { plainToClass } from "class-transformer";
-import { errorUtil } from 'zod/lib/helpers/errorUtil';
-import { is } from 'valibot';
 
 export type ChannelOnUserCreateInput = {
   userId: string;
@@ -51,26 +45,33 @@ export class ChannelsService {
       return response
     }  
 
-    async createChannel(channelName: string, ownerId: string, Private: boolean , hasPass : boolean, Pass : string) {
+    async createChannel(ownerId: string, channelData: channelDto) {
       try {
+        console.log("channel Data : ", channelData);
+        console.log(channelData.IsPrivate," , ", channelData.IsProtected, " , " , channelData.password);
         let checkIfChannelExist : channelDto = await this.prisma.channel.findFirst({where : {
-        name : channelName
+        name : channelData.name,
       }})
       if (checkIfChannelExist)
         return null
+      if (channelData.IsProtected && !channelData.password.length) {
+        console.log("no pass ...");
+        
+        return
+      }
       let _tmp : string[] = ['','']
-      if (hasPass) {
-        _tmp  = await this.hashPassword(Pass)
+      if (channelData.IsProtected) {
+        _tmp  = await this.hashPassword(channelData.password)
       } else {
           _tmp[0] = ''
           _tmp[1] = ''
       }
       const channel : channelDto = await this.prisma.channel.create({
         data: {
-          name: channelName,
+          name: channelData.name,
           owner: ownerId,
-          IsPrivate : Private,
-          IsProtected : hasPass,
+          IsPrivate : channelData.IsPrivate,
+          IsProtected : channelData.IsProtected,
           password : _tmp[1],
           passwordHash : _tmp[0],
           users : {
@@ -89,7 +90,6 @@ export class ChannelsService {
           },
         }
       });
-      console.log('created the following : ', channel);
       return channel;
     } catch (error) {
       console.log('gotchaaa yaa .... : ');
@@ -160,8 +160,14 @@ export class ChannelsService {
           },
       },
   });
-  // return data
   let channelSettingsArray: _channelSettings[] = [];
+  for (let index: number = 0; index < data.length; index++) {
+    for (let userIndex : number = 0; userIndex < data[index].channel.users.length;  userIndex++) {
+      if (data[index].channel.users[userIndex].isMuted) {
+        await this.UndoMuteForUser(data[index].channel.users[userIndex].userId, data[index].channel.users[userIndex].channelId)
+      }
+    }
+  }
   console.log(data);
   data.forEach((channelData) => {
       let channelSettingsInstance = new _channelSettings();
@@ -171,8 +177,7 @@ export class ChannelsService {
       channelSettingsInstance.admins = [];
       channelSettingsInstance.mutedUsers = [];
 
-      channelData.channel.users.forEach((userData) => {
-        console.log("user : ", userData);
+      channelData.channel.users.forEach( async (userData) => {
           if (userData.isAdmin && !userData.isBanned) {
               channelSettingsInstance.admins.push(userData.user.username);
           }
@@ -180,7 +185,7 @@ export class ChannelsService {
               channelSettingsInstance.bandUsers.push(userData.user.username);
           }
           if (userData.isMuted && !userData.isBanned) {
-              channelSettingsInstance.mutedUsers.push(userData.user.username);
+                channelSettingsInstance.mutedUsers.push(userData.user.username);
           }
           if (!userData.isBanned && !userData.isAdmin) {
             channelSettingsInstance.users.push(userData.user.username);
@@ -189,7 +194,8 @@ export class ChannelsService {
 
       channelSettingsArray.push(channelSettingsInstance);
   });
-
+  console.log("data to channel settings :", channelSettingsArray);
+  
   return channelSettingsArray;
   }
 
@@ -270,8 +276,10 @@ export class ChannelsService {
         name : channelName
       }
     })
-    if (!channel || !ToMute)
+    if (!channel || !ToMute) {
+      console.log("1");
       return false
+    }
     let ToMuteChannelOnUser : channelOnUser = await this.prisma.channelOnUser.findFirst({
       where : {
         userId : ToMute.id,
@@ -284,7 +292,9 @@ export class ChannelsService {
         channelId : channel.id
       }
     })
+    console.log("user to Mute : ", ToMuteChannelOnUser);
     if (!ToMuteChannelOnUser || ToMuteChannelOnUser.isMuted || ToMuteChannelOnUser.isBanned || ToMuteChannelOnUser.isOwner || !RequesterChannelOnUser || !RequesterChannelOnUser.isAdmin ) {
+      console.log("2");
       return false
     } 
     await this.prisma.channelOnUser.update({
@@ -299,9 +309,11 @@ export class ChannelsService {
           until : new Date(now.getTime() + 5 * 60 * 1000)
         }
       });
+      console.log("3");
       return true;
   }
   catch (error) {
+    console.log('exception in mute ....');
     console.log(error);
   }
 }
@@ -364,38 +376,38 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
    }
   }
 
-  // async UndoMuteForUser(userId : string, channelName : string) : Promise<any> {
-  //   let UserToCheck : channelOnUser = await this.prisma.channelOnUser.findFirst({
-  //     where : {
-  //       userId : userId,
-  //       channel : {
-  //         name : channelName,
-  //       }
-  //     }
-  //   })
-  //   if (UserToCheck) {
-  //     if (UserToCheck.isMuted) {
-
-  //       // if (UserToCheck.until < Date.)
-  //     }
-  //   }
-  // }
-  // async getUserChannels(id : string) : Promise<channelDto[]> {
-  //  return await this.prisma.channel.findMany({where : {
-  //    users : {
-  //      has : id,
-  //    }
-  //  }})
-  // }
-
-
-  // async getChannelSettingsData(id : string) : Promise<channelDto[]>{
-  //  return await this.prisma.channel.findMany({where : {
-  //    admins : {
-  //      has : id,
-  //    }
-  //  }})
-  // }
+  async UndoMuteForUser(userId : string, channelId : string) : Promise<boolean> {
+    let UserToCheck : channelOnUser = await this.prisma.channelOnUser.findFirst({
+      where : {
+        userId : userId,
+        channel : {
+          id : channelId,
+        }
+      }
+    })
+    if (UserToCheck) {
+      if (UserToCheck.isMuted) {
+        let now : Date = new Date();
+        if (UserToCheck.until.getTime() < now.getTime()) {
+          await this.prisma.channelOnUser.update({
+            where : {
+              userId_channelId : {
+                userId : UserToCheck.userId,
+                channelId : UserToCheck.channelId,
+              }
+            },
+            data : {
+              isMuted : false
+            }
+          })
+          return true;
+        }
+      }
+    }
+    else {
+      return false;
+    }
+  }
 
  async banUserFromChannel(username: string, channelName: string, requester : string) : Promise<boolean> {
   try {

@@ -141,6 +141,7 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async   channelSettings(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
         let data = await this.channel.getChannelSettingsData(req.user.id);
+        console.log("final data : ", data);
         res.status(200).json(data)
     }
 
@@ -256,25 +257,28 @@ export class ChatController {
 
     @Post('createChannel')
     @UseGuards(JwtAuth)
-    async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
+    // name, password, isPrivate, isProtected
+    async createChannel(@Body('name') name : string,  @Body('password') password : string, @Body('isPrivate') isPrivate : boolean, @Body('isProtected') isProtected : boolean, @Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
         try {
-            console.log(channelData);
-            let test : channelDto = await this.channel.createChannel(channelData.name, req.user.id, channelData.IsPrivate, channelData.IsProtected, channelData.password);
-            console.log('channel object : ',test);
-            if (test) {   
+            let test : channelDto = await this.channel.createChannel(req.user.id, {
+                "name" : name,
+                "IsPrivate" : isPrivate,
+                "IsProtected" : isProtected,
+                "password" : password,
+            });
+            if (test) {
+                console.log("created channel : ", test);
                 if (!req.user.achievements.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699323620/qodwzbr6cxd74m14i4ad.png'))
                     this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699323620/qodwzbr6cxd74m14i4ad.png', req.user.id)
-                res.status(200).json(test)
+                res.status(200).json(test.name)
             }
             else
-                res.status(400).json('channel already exists with that name')
-            
+                res.status(400).json("can't create channel ....")
         }
         catch (error) {
             res.status(400).json("invalid Data .")
         } 
     }
-
 
     @Post('BanUser')
     @UseGuards(JwtAuth)
@@ -318,9 +322,12 @@ export class ChatController {
     async muteUser(@Req() req: Request & {user : UserDto}, @Body('channelName') channelName : string, @Body('username') username : string, @Res() res: Response) : Promise<any> {
         try { 
             let check : boolean = await this.channel.muteUser(username, channelName, req.user.id)
+            console.log("check : ", check, " data : ", username ,  " , ", channelName);
             if (check){
+                console.log('mute 1');
                 res.status(200).json(username)
             } else {
+                console.log('mute 2');
                 res.status(400).json(username)
             }
         } catch (error) {

@@ -173,7 +173,6 @@ export class ChannelsService {
 
       channelData.channel.users.forEach((userData) => {
         console.log("user : ", userData);
-        
           if (userData.isAdmin && !userData.isBanned) {
               channelSettingsInstance.admins.push(userData.user.username);
           }
@@ -183,7 +182,7 @@ export class ChannelsService {
           if (userData.isMuted && !userData.isBanned) {
               channelSettingsInstance.mutedUsers.push(userData.user.username);
           }
-          if (!userData.isBanned) {
+          if (!userData.isBanned && !userData.isAdmin) {
             channelSettingsInstance.users.push(userData.user.username);
           }
       });
@@ -285,7 +284,7 @@ export class ChannelsService {
         channelId : channel.id
       }
     })
-    if (!ToMuteChannelOnUser || ToMuteChannelOnUser.isMuted || ToMuteChannelOnUser.isOwner || !RequesterChannelOnUser || !RequesterChannelOnUser.isAdmin ) {
+    if (!ToMuteChannelOnUser || ToMuteChannelOnUser.isMuted || ToMuteChannelOnUser.isBanned || ToMuteChannelOnUser.isOwner || !RequesterChannelOnUser || !RequesterChannelOnUser.isAdmin ) {
       return false
     } 
     await this.prisma.channelOnUser.update({
@@ -365,6 +364,22 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
    }
   }
 
+  // async UndoMuteForUser(userId : string, channelName : string) : Promise<any> {
+  //   let UserToCheck : channelOnUser = await this.prisma.channelOnUser.findFirst({
+  //     where : {
+  //       userId : userId,
+  //       channel : {
+  //         name : channelName,
+  //       }
+  //     }
+  //   })
+  //   if (UserToCheck) {
+  //     if (UserToCheck.isMuted) {
+
+  //       // if (UserToCheck.until < Date.)
+  //     }
+  //   }
+  // }
   // async getUserChannels(id : string) : Promise<channelDto[]> {
   //  return await this.prisma.channel.findMany({where : {
   //    users : {

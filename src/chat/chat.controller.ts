@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { UserDto } from "src/DTOs/User/user.dto";
 import { FriendDto } from "src/DTOs/friends/friend.dto";
 import { InviteDto } from "src/DTOs/invitation/invite.dto";
@@ -14,11 +14,9 @@ import { channelParams } from "src/DTOs/channel/channel.params.dto";
 import { frontData } from "src/DTOs/chat/conversation.dto";
 import { messageRepository } from "src/modules/message/message.repository";
 import { JwtAuth } from "src/auth/Guards/jwt.guard";
-import { channelSettings } from "src/DTOs/settings/setting.channel.dto";
 import { ConversationDto } from "src/DTOs/conversation/conversation.dto";
 import { UserSettingsDto } from "src/DTOs/settings/settings.user.dto";
-import channelsAsConversations, { channelData } from "src/DTOs/channel/channel.response.dto";
-import { use } from "passport";
+import{ channelData } from "src/DTOs/channel/channel.response.dto";
 
 
 
@@ -282,8 +280,6 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async   BanUser(@Req() req: Request & {user : UserDto} , @Body('username') username: string, @Res() res: Response) : Promise<any> {
         try {
-            console.log("hahowaaaa ====> ", username);
-            
             let userToBan : UserDto = await this.user.getUserByUsername(username)
             let requester : UserDto = await this.user.getUserById(req.user.id)
             if (userToBan && requester && !requester.bandUsers.includes(userToBan.id)) {
@@ -319,9 +315,9 @@ export class ChatController {
 
     @Post('mute')
     @UseGuards(JwtAuth)
-    async muteUser(@Req() req: Request & {user : UserDto}, @Body('channel') channel : string, @Body('username') username : string, @Res() res: Response) : Promise<any> {
+    async muteUser(@Req() req: Request & {user : UserDto}, @Body('channelName') channelName : string, @Body('username') username : string, @Res() res: Response) : Promise<any> {
         try { 
-            let check : boolean = await this.channel.muteUser(username, channel, req.user.id)
+            let check : boolean = await this.channel.muteUser(username, channelName, req.user.id)
             if (check){
                 res.status(200).json(username)
             } else {
@@ -374,6 +370,8 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async   banUserFromChannel(@Req() req: Request & {user : UserDto}, @Body() data: channelParams, @Res() res: Response) {
         try {
+            console.log("ban user from channel data : ", data);
+            
             let check : boolean = await this.channel.banUserFromChannel(data.username, data.channelName, req.user.id)
             if (check)
                 res.status(200).json(data.username)

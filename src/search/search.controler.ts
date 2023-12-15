@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Req, UseGuards } from "@nestjs/common";
-import { Request } from "express";
+import { Controller, Get, Param, Req, Res, UseGuards } from "@nestjs/common";
+import { Request, Response } from "express";
 import { UserDto } from "src/DTOs/User/user.dto";
+import { searchDto } from "src/DTOs/search/search.dto";
 import { JwtAuth } from "src/auth/Guards/jwt.guard";
 import { UsersRepository } from "src/modules/users/users.repository";
 
@@ -12,14 +13,23 @@ export class SearchController {
 
     @Get(':data')
     @UseGuards(JwtAuth)
-    async Search(@Param('data') data: string, @Req() req: Request & {user: UserDto}) : Promise<string[]> {
-        let users : UserDto[] = await this.user.getUserWith(data);
-        let searchResult : string[] = []
-        if (users) {
-            users.forEach((user)=> {
-                searchResult.push(user.username)
-            })
+    async Search(@Param('data') data: string, @Req() req: Request & {user: UserDto}, @Res() res : Response) : Promise<any> {
+        try {
+
+            let users : UserDto[] = await this.user.getUserWith(data);
+            let searchResult : searchDto[] = []
+            if (users) {
+                users.forEach((user)=> {
+                    searchResult.push({
+                        id : user.id,
+                        username : user.username
+                    })
+                })
+            }
+            res.status(200).json(searchResult)
         }
-        return searchResult
+        catch(error) {
+            console.log('error while getting search ... call ismail ');
+        }
     }
 }

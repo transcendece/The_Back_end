@@ -147,7 +147,24 @@ export class ChannelsService {
             },
           },
         });
-      return true;
+      let usersInChannel : channelOnUser[] = await this.prisma.channelOnUser.findMany({
+        where : {
+          channel : {
+            id : channel.id,
+          }
+        }
+      })
+      if (usersInChannel && usersInChannel.length !== 0) {
+        return true;
+      } else {
+        await this.prisma.channel.delete({
+          where : {
+            id : channel.id,
+          }
+        })
+        console.log('deleted channel ....');
+        return true
+      } 
      }
 
      async getUserChannelNames(id : string) : Promise<string[]> {

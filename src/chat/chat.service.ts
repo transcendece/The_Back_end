@@ -5,7 +5,6 @@ import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { channelOnUser } from 'src/DTOs/channel/channelOnUser.dto';
-import e from 'express';
 
 
 export type channelSearchType = {
@@ -35,7 +34,7 @@ export type ChannelOnUserCreateInput = {
 export class ChannelsService {
  constructor(private prisma: PrismaService) {}
 
-    async channelSearchResults(channel : string) : Promise<channelSearchType[]> {
+    async channelSearchResults(channel : string, user : string) : Promise<channelSearchType[]> {
       let data : channelDto[] = await this.prisma.channel.findMany({
         where : {
           name : {
@@ -44,14 +43,28 @@ export class ChannelsService {
           IsPrivate : false
         }
       })
+      let hasdata = await this.prisma.channelOnUser.findMany({
+        where : {
+          userId : user,
+        },
+        include :{
+          channel : {
+            select : {
+              name : true,
+            }
+          }
+        }
+      });
+      let channelNames : string[] = hasdata.map(item => item.channel.name);
       let response : channelSearchType[] = [];
       data.map((element)=> {
-        response.push({
-          name : element.name,
-          isProtected : element.IsProtected,
-        });
+        if (!channelNames.includes(element.name)) {
+          response.push({
+            name : element.name,
+            isProtected : element.IsProtected,
+          });
+        }
       })
-      // console.log(response);
       return response
     }  
 
@@ -105,7 +118,37 @@ export class ChannelsService {
     }
      }
      
-
+     async leaveChannel(userId: string, channelName : string) : Promise<boolean> {
+      let userOnChannel : channelOnUser = await this.prisma.channelOnUser.findFirst({
+        where : {
+          user : {
+            id : userId,
+          },
+          channel : {
+            name : channelName,
+          }
+        }
+      })
+      if (!userOnChannel) {
+        return false;
+      }
+      let channel : channelDto = await this.prisma.channel.findFirst({
+        where : {
+          name : channelName,
+        }
+      })
+      if (!channel)
+        return false;
+        await this.prisma.channelOnUser.delete({
+          where: {
+            userId_channelId: {
+              userId: userId,
+              channelId: channel.id,
+            },
+          },
+        });
+      return true;
+     }
 
      async getUserChannelNames(id : string) : Promise<string[]> {
       let data = await this.prisma.channelOnUser.findMany({
@@ -153,8 +196,9 @@ export class ChannelsService {
         name : channel,      
       }
     })
-    if (!StoredChannel)
+    if (!StoredChannel) {
       return false
+    }
     let CheckIfUserExitst : channelOnUser = await this.prisma.channelOnUser.findFirst({
       where : {
         channel : {
@@ -165,18 +209,63 @@ export class ChannelsService {
         }
       }
     })
-    if (CheckIfUserExitst)
+    if (CheckIfUserExitst) {
       return false
+    }
     if (StoredChannel.IsProtected) {
-      if (this.checkPassword(password, StoredChannel.passwordHash)) {
-        await this.addUserToChannel(userId, StoredChannel.id, userId)
+      let valid : boolean = await this.checkPassword(password, StoredChannel.password)
+      console.log("pass valid : ", valid);
+      if (valid) {
+        let tmp : channelOnUser = await this.prisma.channelOnUser.create({
+          data : {
+            isAdmin : false,
+            isMuted : false,
+            isBanned : false,
+            isOwner : false,
+            until: new Date,
+            user : {
+              connect : {
+                id : userId,
+              }
+            },
+            channel : {
+              connect : {
+                name: channel,
+              }
+            }
+          }
+        })
+        if (!tmp) {
+          return false;
+        }
       }
       else {
         return false;
       }
     }
     else {
-      await this.addUserToChannel(userId, StoredChannel.id, userId)
+      let tmp : channelOnUser = await this.prisma.channelOnUser.create({
+        data : {
+          isAdmin : false,
+          isMuted : false,
+          isBanned : false,
+          isOwner : false,
+          until: new Date,
+          user : {
+            connect : {
+              id : userId,
+            }
+          },
+          channel : {
+            connect : {
+              name: channel,
+            }
+          }
+        }
+      })
+      console.log("added : ", tmp);
+      if (!tmp)
+        return true;
     }
     return true;
   }

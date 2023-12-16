@@ -105,13 +105,26 @@ export class ChatController {
             res.status(400)
         }
     }
-    
+
+
+    @Post('leaveChannel')
+    @UseGuards(JwtAuth)
+    async  leaveChannel(@Req() req: Request & {user : UserDto}, @Res() res: Response, @Body('channelName') channelName : string) {
+        let check : boolean = await this.channel.leaveChannel(req.user.id, channelName)
+        console.log("left : ", check);
+        if (check) {
+            res.status(200).json(channelName)
+        }
+        else {
+            res.status(400).json(channelName)
+        }
+    }
+
     @Post('channelSearch')
     @UseGuards(JwtAuth)
     async channelSearch(@Req() req: Request & {user : UserDto}, @Res() res: Response, @Body('message') message : string ) : Promise<any> {
         try {
-            // console.log("recieved : ", message);
-            let response : channelSearchType[] = await this.channel.channelSearchResults(message)
+            let response : channelSearchType[] = await this.channel.channelSearchResults(message, req.user.id)
             if (response) {
                 res.status(200).json(response);
             }
@@ -491,50 +504,33 @@ export class ChatController {
             res.status(400).json(data.username)
         }
     }
-    // @UseGuards(JwtAuth)
-    // @Post('addPasswordToChannel')
-    // async addPasswordToChannel(@Body() channleData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res: Response) {
-    //     try {
-    //         let channel : channelDto = await this.channel.getChannelByName(channleData.name)
-    //         if (channel && channel.owner == req.user.id) {
-    //             await this.channel.setPasswordToChannel(channleData.password, channleData.name)
-    //         }
-    //         res.status(200)
-    //     }
-    //     catch (error) {
-    //         res.status(400)
-    //     }
-    // }
+    @UseGuards(JwtAuth)
+    @Post('addPasswordToChannel')
+    async addPasswordToChannel(@Body() channleData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res: Response) {
+        try {
+            let channel : channelDto = await this.channel.getChannelByName(channleData.name)
+            if (channel && channel.owner == req.user.id) {
+                await this.channel.setPasswordToChannel(channleData.password, channleData.name)
+            }
+            res.status(200)
+        }
+        catch (error) {
+            res.status(400)
+        }
+    }
     
-    // @UseGuards(JwtAuth)
-    // @Post('removePasswordToChannel')
-    // async removePasswordToChannel(@Body() data : channelParams , @Req() req: Request & {user : UserDto}, @Res() res: Response) {
-    //     try {
-    //         let channel : channelDto = await this.channel.getChannelByName(data.channelName)
-    //         if (channel && channel.owner == req.user.id) {
-    //             await this.channel.unsetPasswordToChannel(data.channelName)
-    //         }
-    //         res.status(200)
-    //     }
-    //     catch (error) {
-    //         res.status(400)
-    //     }
-    // }
-
-
-    // @Post('getChannelMessages')
-    // @UseGuards(JwtAuth)
-    // async   getChannelMessages(@Body() data : channelParams, @Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any>{
-    //     try {
-    //         let endValue : channelMessageDto[] = []
-    //         let check_channel : channelDto = await this.channel.getChannelByName(data.channelName)
-    //         if (check_channel && check_channel.users.includes(req.user.id)) {
-    //             endValue = await this.channel.getChannelMessages(data.channelName)
-    //         }
-    //         res.status(200).json(endValue)
-    //     }
-    //     catch (error) {
-    //         res.status(400)
-    //     }
-    // }
+    @UseGuards(JwtAuth)
+    @Post('removePasswordToChannel')
+    async removePasswordToChannel(@Body() data : channelParams , @Req() req: Request & {user : UserDto}, @Res() res: Response) {
+        try {
+            let channel : channelDto = await this.channel.getChannelByName(data.channelName)
+            if (channel && channel.owner == req.user.id) {
+                await this.channel.unsetPasswordToChannel(data.channelName)
+            }
+            res.status(200)
+        }
+        catch (error) {
+            res.status(400)
+        }
+    }
 }

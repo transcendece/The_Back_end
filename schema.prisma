@@ -8,7 +8,7 @@ generator client {
 datasource database {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -31,6 +31,7 @@ model User {
   online                Boolean ? @default(false)
   level                 Float @default(0)
   channels              ChannelOnUser[]
+  isAuth                Boolean @default(false)
 }
 
 model ChannelOnUser {

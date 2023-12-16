@@ -426,7 +426,12 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async joinChannelRequest(@Req() req: Request & {user : UserDto}, @Body('channelName') channelName : string, @Body('password') password : string, @Res() res: Response) : Promise<any> {
         console.log("=======> ", channelName , password);
-        res.status(200);
+        let check : boolean = await this.channel.JoinUserToChannel(req.user.id, channelName, password)
+        if (check)
+            res.status(200);
+        else {
+            res.status(400);
+        }
     } 
 
     @Post('accepteInvite')

@@ -147,6 +147,40 @@ export class ChannelsService {
   }
 
 
+  async JoinUserToChannel(userId : string, channel : string, password : string) : Promise<boolean> {
+    let StoredChannel : channelDto = await this.prisma.channel.findFirst({
+      where : {
+        name : channel,      
+      }
+    })
+    if (!StoredChannel)
+      return false
+    let CheckIfUserExitst : channelOnUser = await this.prisma.channelOnUser.findFirst({
+      where : {
+        channel : {
+          name : channel,
+        },
+        user : {
+          id : userId,
+        }
+      }
+    })
+    if (CheckIfUserExitst)
+      return false
+    if (StoredChannel.IsProtected) {
+      if (this.checkPassword(password, StoredChannel.passwordHash)) {
+        await this.addUserToChannel(userId, StoredChannel.id, userId)
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      await this.addUserToChannel(userId, StoredChannel.id, userId)
+    }
+    return true;
+  }
+
   async getChannelSettingsData(userId : string) : Promise<any> {
     let data = await this.prisma.channelOnUser.findMany({
       where : {

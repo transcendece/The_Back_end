@@ -10,6 +10,8 @@ import { messageRepository } from "src/modules/message/message.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { chatDto } from "src/DTOs/chat/chat.dto";
+import { AllExceptionsSocketFilter } from "./socket.exceptionHandler";
+import { UseFilters } from "@nestjs/common";
 
 @WebSocketGateway(8888, {
   cors: {
@@ -17,6 +19,7 @@ import { chatDto } from "src/DTOs/chat/chat.dto";
     credentials: true
   }
 })
+@UseFilters(new AllExceptionsSocketFilter())
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
     constructor (private jwtService: JwtService, private user: UsersRepository, private conversation : converationRepositroy, private message: messageRepository, private channel : ChannelsService) {
         this.clientsMap = new Map<string, Socket>();
@@ -68,6 +71,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
   }
 
       async handleDisconnect(client: Socket) {
+        try {
           let cookie : string = client.client.request.headers.cookie;
           if (cookie) {
             const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
@@ -84,6 +88,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
               this.clientsMap.delete(user.sub);
             }
           }
+        } catch (error) {
+          return;
+        }
       }
 
       @SubscribeMessage('channelMessage')

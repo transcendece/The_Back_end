@@ -25,6 +25,8 @@ export class UserDto {
     online  :    boolean;
 
     level : number;
+
+    isAuth ? : boolean;
 }
 
 export class TwoFaV {

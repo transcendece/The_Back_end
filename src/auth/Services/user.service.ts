@@ -81,4 +81,12 @@ export class UserService {
                     IsEnabled: true }
         });
     }
+
+    async updateIsAuthupdate(id : string, state : boolean):Promise<UserDto> {
+
+        return await this.prisma.user.update({
+            where: {id:id},
+            data: {isAuth: state}
+        });
+    }
 }

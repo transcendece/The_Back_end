@@ -58,9 +58,10 @@ export class AuthController {
 
     @Post('logout')
     @UseGuards(JwtAuth)
-    async logout(@Res() res : Response) {
+    async logout(@Res() res : Response, @Req() req : Request & {user : UserDto}) {
 
         res.clearCookie('jwt-token');
+        await this.userService.updateIsAuthupdate(req.user.id, false);
         res.status(200).send('cookie was deleted');
     }
 }

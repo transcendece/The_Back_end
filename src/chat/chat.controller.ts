@@ -86,7 +86,7 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async getChannels(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
         try {
-            console.log("Sending data to : ", req.user.username);
+            // console.log("Sending data to : ", req.user.username);
             let channelData : channelData[] = [];
             let data = await this.channel.getUserChannelNames(req.user.id);
             if (data){
@@ -424,8 +424,8 @@ export class ChatController {
 
     @Post('joinChannel')
     @UseGuards(JwtAuth)
-    async joinChannelRequest(@Req() req: Request & {user : UserDto}, @Body('channelName') channelName : string, @Res() res: Response) : Promise<any> {
-        console.log("=======> ", channelName);
+    async joinChannelRequest(@Req() req: Request & {user : UserDto}, @Body('channelName') channelName : string, @Body('password') password : string, @Res() res: Response) : Promise<any> {
+        console.log("=======> ", channelName , password);
         res.status(200);
     } 
 

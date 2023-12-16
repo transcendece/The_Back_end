@@ -51,7 +51,7 @@ export class ChannelsService {
           isProtected : element.IsProtected,
         });
       })
-      console.log(response);
+      // console.log(response);
       return response
     }  
 

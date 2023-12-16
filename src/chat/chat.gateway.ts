@@ -71,7 +71,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           let cookie : string = client.client.request.headers.cookie;
           if (cookie) {
             const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
-            console.log('here is the jwt : ', jwt);
+            // console.log('here is the jwt : ', jwt);
             let user;
             user =  this.jwtService.verify(jwt);
             if (user) {
@@ -81,6 +81,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
                 await this.user.updateUserOnlineStatus(false, test.id)
                 console.log(`this is a test : ${test.id} ****`)
               }
+              console.log("disconnected : ", user.sub);
+              
               this.clientsMap.delete(test.id);
             }
           }

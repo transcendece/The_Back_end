@@ -831,17 +831,18 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
  async deleteChannel(channelId : string) : Promise<any> {
     await this.prisma.channel.delete({where : {id : channelId}})
  }
- 
- 
+
  async setPasswordToChannel(password: string, channelName : string) {
-  console.log('testing', password);
-  
+    console.log('testing', password);  
     let channel : channelDto = await this.prisma.channel.findFirst({where : { name :channelName}})
     if (channel && password.length) {
+      let _tmp : string[] = ['','']
+      _tmp  = await this.hashPassword(channel.password)
       return await this.prisma.channel.update({where : {id: channel.id},
       data : {
         IsProtected : true,
-        password : password,
+        password : _tmp[1],
+        passwordHash : _tmp[0],
       }})
     }
  }

@@ -906,9 +906,34 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
         }
       }
     })
-    if (!user || user.isBanned || user.isMuted)
-    return false
-  return true
+    if (!user || user.isBanned || user.isMuted) {
+      if (user.isMuted) {
+        console.log("this user is muted : ", user.userId , " until : ", user.until.getTime());
+        let time : Date = new Date();
+        let removeMute : boolean = ((time.getTime() - user.until.getTime()) > 0);
+        console.log("removeMute", removeMute);
+        if (removeMute) {
+          await this.prisma.channelOnUser.update({
+            where : {
+              userId_channelId : {
+                userId : user.userId,
+                channelId : user.channelId,
+              }
+            },
+            data : {
+              isMuted : false,
+            }
+          })
+          if (!user.isBanned)
+            return true 
+        }
+      }else {
+        return false
+      }
+    }
+    else {
+      return true;
+    }
   }
   catch (error) {
     return false;

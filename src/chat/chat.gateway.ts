@@ -116,6 +116,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
                     channelId = tmpChannel.id;
                   }
                   let check : boolean = await this.channel.canSendMessageToChannel(_user.id, message.channelName)
+                  console.log("has privilage to send on channel :", check);
+                  
                   let sent : boolean = false;
                   if (check) {
                     let channelUsersIds : string[] = await this.channel.getChannelUsersId(message.channelName)

@@ -103,6 +103,7 @@ model Message {
 model ChannelMessage {
   id                    String @id @default(uuid())
   sender                String
+  userId                String
   content               String
   channelName           String
   channelId             String

@@ -137,7 +137,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
                     }
                   }
                   if (sent) {
-                    await this.channel.createChannelMessage(message, channelId);
+                    await this.channel.createChannelMessage(message, channelId, _user.id);
                   }
             }
           }

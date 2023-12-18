@@ -512,12 +512,13 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
 }
 
 
-  async createChannelMessage(message : channelMessageDto, channelId : string) : Promise<any> {
+  async createChannelMessage(message : channelMessageDto, channelId : string, senderId : string) : Promise<any> {
    console.log('message recieved in channel : ',message);
    if (message) {
      console.log('creating channel message', message);
      return await this.prisma.channelMessage.create({data : {
        sender : message.sender,
+       userId : senderId,
        content : message.content,
        channelName : message.channelName,
        channel : {
@@ -892,8 +893,12 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
  async getChannelMessages(channel : string) : Promise<channelMessageDto[]> {
   console.log('getting messages of : ',channel);
   
-  let tmp =  await this.prisma.channelMessage.findMany({where : {channelName : channel}})
-  console.log(tmp);
+  let tmp =  await this.prisma.channelMessage.findMany({
+    where : {
+      channelName : channel
+    }
+  })
+  console.log("channel Messages : ", tmp);
   return tmp
  }
 

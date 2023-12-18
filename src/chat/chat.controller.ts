@@ -216,13 +216,18 @@ export class ChatController {
 
     @Post('removeFriend')
     @UseGuards(JwtAuth)
-    async removeFriend(@Req() req: Request & {user : UserDto}, @Body('username') username: string) : Promise<any> {
+    async removeFriend(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Res() res: Response) : Promise<any> {
         try {
             console.log("recived a request ////////////   ===> ", username);
             let tmp : UserDto = await this.user.getUserByUsername(username)
-            if (tmp)
-                return await this.friend.deleteFriend(tmp.id, req.user.id);
-            // need to add an else to inform the user that the username dosen't exist.
+            if (tmp) {
+                await this.friend.deleteFriend(tmp.id, req.user.id);
+                res.status(200).json({username : username, action : "removeFriend"})
+                return
+            }
+            else {
+                res.status(400).json("no Such User ...");
+            }
         }
         catch(error) {
             console.log(error);
@@ -317,10 +322,10 @@ export class ChatController {
         try {
             let userTounBan : UserDto = await this.user.getUserByUsername(username)
             let requester : UserDto = await this.user.getUserById(req.user.id)
-            if (userTounBan && requester && requester.bandUsers.includes(userTounBan.username)) {
+            if (userTounBan && requester && requester.bandUsers.includes(userTounBan.id)) {
                 let tmp :string = await this.channel.unBanUser(req.user, userTounBan)
                 console.log(tmp);
-                res.status(200).json(userTounBan)
+                res.status(200).json({username : userTounBan,action : "unBan"})
             }
             else
                 res.status(400).json("user dosen't exist in database .")    
@@ -429,7 +434,7 @@ export class ChatController {
             if (find)
                 await this.invite.deleteInvite(find.id)
             console.log('deleted ...');
-            res.status(200)
+            res.status(200).json({username : username, action : "deleteInvite"})
         } catch (error) {
             res.status(400)
         }
@@ -441,7 +446,7 @@ export class ChatController {
         console.log("=======> ", channelName , password);
         let check : boolean = await this.channel.JoinUserToChannel(req.user.id, channelName, password)
         if (check)
-            res.status(200);
+            res.status(200).json(channelName);
         else {
             res.status(400);
         }
@@ -466,7 +471,7 @@ export class ChatController {
             console.log("invite ====> ", username);
             await this.invite.deleteInvite(tmp.id);
             let data : FriendDto = await this.friend.createFriend(new FriendDto(invitationRecieverId, invitationSenderId, ''), req.user.id)
-            res.status(200).json(data);
+            res.status(200).json({username : username, action : "addFriend"});
         }
         catch (error) {
             res.status(400)

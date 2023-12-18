@@ -877,7 +877,7 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
     let tmp : string[] = []
     if (user && ban) {
       user.bandUsers.forEach((user) => {
-        if (user != ban.username)
+        if (user != ban.id)
           tmp.push(user)
       })
       let check = await this.prisma.user.update({where : {id : user.id}, 

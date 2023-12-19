@@ -312,7 +312,7 @@ export class ChatController {
             let requester : UserDto = await this.user.getUserById(req.user.id)
             if (userToBan && requester && !requester.bandUsers.includes(userToBan.id)) {
                 let tmp : string = await this.channel.BanUser(req.user, userToBan)
-                res.status(200).json(username)
+                res.status(200).json({username : username, action : "Ban"});
                 return 
             }
             else {

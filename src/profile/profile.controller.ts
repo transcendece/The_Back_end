@@ -27,7 +27,7 @@ export class ProfileController {
         try {
 
             if (!req.user.isAuth && req.user.IsEnabled) {
-                res.status(401);
+                res.status(401).json("unAuthorized");
                 return ;
             }
         const _achievements : AchievementDto[] = await this.achievement.getAchievements();

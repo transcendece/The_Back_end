@@ -99,10 +99,10 @@ export class ChatController {
                 res.status(200).json({"username" : req.user.username ,"channels" : channelData});
             }
             else
-                res.status(400);
+                res.status(400).json("no channel");
         }
         catch (error) {
-            res.status(400)
+            res.status(400).json("no channel")
         }
     }
 
@@ -133,7 +133,7 @@ export class ChatController {
             }
         }
         catch (error) {
-            res.status(400)
+            res.status(400).json("no channel")
         }
     }
 
@@ -146,16 +146,22 @@ export class ChatController {
             res.status(200).json(data);
         } catch (error) {
             console.log("erroriiiiiii ");
-            res.status(400);
+            res.status(400).json("no channel");
         }
     }
 
     @Get('channelSettings')
     @UseGuards(JwtAuth)
     async   channelSettings(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
-        let data = await this.channel.getChannelSettingsData(req.user.id);
-        console.log("final data : ", data);
-        res.status(200).json(data)
+        try {
+
+            let data = await this.channel.getChannelSettingsData(req.user.id);
+            console.log("final data : ", data);
+            res.status(200).json(data)
+        }
+        catch (error) {
+            res.status(400).json("error");
+        }
     }
 
     @Get('userSettings')
@@ -230,6 +236,7 @@ export class ChatController {
             }
         }
         catch(error) {
+            res.status(400).json("xxx...")
             console.log(error);
         }
     }
@@ -250,7 +257,7 @@ export class ChatController {
             }
             let tmpUser : UserDto = await this.user.getUserByUsername(username)
             if (!tmpUser) {
-                res.sendStatus(400)
+                res.sendStatus(400).json("no invite")
                 return 
             }
             invitation.invitationSenderId = req.user.id;
@@ -436,7 +443,7 @@ export class ChatController {
             console.log('deleted ...');
             res.status(200).json({username : username, action : "deleteInvite"})
         } catch (error) {
-            res.status(400)
+            res.status(400).json("no invite ...")
         }
     }
 
@@ -448,7 +455,7 @@ export class ChatController {
         if (check)
             res.status(200).json(channelName);
         else {
-            res.status(400);
+            res.status(400).json("can't join");
         }
     } 
 
@@ -474,7 +481,7 @@ export class ChatController {
             res.status(200).json({username : username, action : "addFriend"});
         }
         catch (error) {
-            res.status(400)
+            res.status(400).json("no Invite to accepte")
         }
     }
     
@@ -517,10 +524,10 @@ export class ChatController {
             if (channel && channel.owner == req.user.id) {
                 await this.channel.setPasswordToChannel(channleData.password, channleData.name)
             }
-            res.status(200)
+            res.status(200).json("added Pass")
         }
         catch (error) {
-            res.status(400)
+            res.status(400).json("can't add pass")
         }
     }
     
@@ -532,10 +539,10 @@ export class ChatController {
             if (channel && channel.owner == req.user.id) {
                 await this.channel.unsetPasswordToChannel(data.channelName)
             }
-            res.status(200)
+            res.status(200).json("removed pass")
         }
         catch (error) {
-            res.status(400)
+            res.status(400).json("can't removed pass")
         }
     }
 }

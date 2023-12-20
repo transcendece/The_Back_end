@@ -20,10 +20,12 @@ export class SearchController {
             let searchResult : searchDto[] = []
             if (users) {
                 users.forEach((user)=> {
-                    searchResult.push({
-                        id : user.id,
-                        username : user.username
-                    })
+                    if (user.id != req.user.id) {
+                        searchResult.push({
+                            id : user.id,
+                            username : user.username
+                        })
+                    }
                 })
             }
             res.status(200).json(searchResult)

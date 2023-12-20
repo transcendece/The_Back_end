@@ -49,6 +49,26 @@ export class FriendsRepository {
         return friends;
     }
 
+    async isFriend(First : string, Second : string) : Promise<boolean> {
+        let tmp : FriendDto = await this.prisma.friend.findFirst({
+            where : {
+                OR : [
+                    {
+                        inviteRecieverId : First,
+                        inviteSenderId : Second,
+                    },
+                    {
+                        inviteRecieverId : Second,
+                        inviteSenderId : First,
+                    },
+                ]
+            }
+        })
+        if (tmp)
+            return true
+        return false
+    }
+
     async updateFriend (id: string, data: FriendDto) : Promise<FriendDto> {
         return await this.prisma.friend.update({
             where: {id},

@@ -12,6 +12,7 @@ import { FriendsRepository } from 'src/modules/friends/friends.repository';
 import { MatchesRepository } from 'src/modules/matches/matches.repository';
 import { FileService } from 'src/modules/readfile/readfile';
 import { UsersRepository } from 'src/modules/users/users.repository';
+import { boolean } from 'zod';
 
 @Controller('Profile')
 export class ProfileController {
@@ -25,7 +26,6 @@ export class ProfileController {
     @UseGuards(JwtAuth)
     async GetUserData(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<void> {
         try {
-
             if (!req.user.isAuth && req.user.IsEnabled) {
                 res.status(401).json("unAuthorized");
                 return ;
@@ -144,10 +144,12 @@ export class ProfileController {
                 };
                     return tmp;
             }))
-            profileData.matches = tmpMatches.filter((match) => match !== null);
-            console.log(profileData.matches);
-            console.log(_achievements)
-            res.status(200).json(profileData)
+                profileData.matches = tmpMatches.filter((match) => match !== null);
+                console.log(profileData.matches);
+                console.log(_achievements)
+                let isBand : boolean = (req.user.bandUsers.includes(id) || req.user.bandBy.includes(id))
+                let isFreind : boolean = await this.friend.isFriend(req.user.id, id);
+                res.status(200).json({data : profileData, isBand : isBand, isFreind : isFreind})
             }
             catch(error) {
                 res.status(400).json('Invalid data .')

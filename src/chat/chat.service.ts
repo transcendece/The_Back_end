@@ -519,12 +519,16 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
      console.log('creating channel message', message);
      return await this.prisma.channelMessage.create({data : {
        sender : message.sender,
-       userId : senderId,
        content : message.content,
        channelName : message.channelName,
        channel : {
         connect : {
           id : channelId,
+        }
+       },
+       user : {
+        connect : {
+          id : senderId
         }
        }
      }})
@@ -922,17 +926,29 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
       id : requester,
     }
   })
-  let tmp : channelMessageDto[] =  await this.prisma.channelMessage.findMany({
+  let tmp =  await this.prisma.channelMessage.findMany({
     where : {
-      channelName : channel
+      channelName : channel,
+    },
+    include : {
+      user : {
+        select : {
+          username : true,
+        }
+      }
     }
   })
   let data : channelMessageDto[] = []
   for (let index : number = 0; index < tmp.length; index++) {
     if (!user.bandBy.includes(tmp[index].userId) && !user.bandUsers.includes(tmp[index].userId)) {
-      data.push(tmp[index])
+      data.push({
+        userId : tmp[index].userId,
+        sender : tmp[index].user.username,
+        content : tmp[index].content,
+        channelName : tmp[index].channelId
+      })
     }
-  } 
+  }
   return data;
  }
 

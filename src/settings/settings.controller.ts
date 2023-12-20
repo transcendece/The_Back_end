@@ -34,6 +34,7 @@ export class settingsController {
     async   updateUsername(@Res() res: Response, @Body() data : settingsDto, @Req() req: Request & {user : UserDto}) {
 
         try {
+            console.log("trying to change data : ",data);
             const user = req.user
             var userData = await this.user.updateUsername(user.id, data.username)
             if (data.checked_ === false && data.checked_ !== req.user.IsEnabled) {
@@ -42,7 +43,6 @@ export class settingsController {
                 res.status(201).json(userData);
             }
             else if (data.checked_ === true && data.checked_ !== req.user.IsEnabled) {
-
                 var code = await this.TwoFaService.generate2FASecret(userData);
                 userData = await this.user.getUserById(userData.id);
                 res.status(201).json({code, userData});
@@ -51,7 +51,6 @@ export class settingsController {
                 res.status(201).json(userData)
         }
         catch (error) {
-
             throw Error(error)
         }
     }

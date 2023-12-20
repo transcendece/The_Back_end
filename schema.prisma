@@ -32,6 +32,7 @@ model User {
   online                Boolean ? @default(false)
   level                 Float @default(0)
   channels              ChannelOnUser[]
+  channelMessages       ChannelMessage[]
   isAuth                Boolean @default(false)
 }
 
@@ -105,6 +106,7 @@ model ChannelMessage {
   id                    String @id @default(uuid())
   sender                String
   userId                String
+  user                  User @relation(fields: [userId], references: [id], onDelete: Cascade)
   content               String
   channelName           String
   channelId             String

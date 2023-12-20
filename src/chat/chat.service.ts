@@ -5,6 +5,7 @@ import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { channelOnUser } from 'src/DTOs/channel/channelOnUser.dto';
+import { number } from 'zod';
 
 
 export type channelSearchType = {
@@ -868,6 +869,16 @@ async  KickUserFromChannel(UserToKick: string, channelName: string, requester : 
       let check = await this.prisma.user.update({where : {id : user.id}, 
         data : {bandUsers : tmp},
       })
+      let banList : string[] = ban.bandBy
+      banList.push(user.id);
+      await this.prisma.user.update({
+        where : {
+          id : ban.id,
+        },
+        data : {
+          bandBy : banList,
+        }
+      })
       console.log(check);
       return `user banned succesfully.`
     }
@@ -884,22 +895,45 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
       let check = await this.prisma.user.update({where : {id : user.id}, 
         data : {bandUsers : tmp},
       })
+      let bandBy : string[] = []
+      for (let index : number = 0; index < bandBy.length; index++) {
+        if (ban.bandBy[index] != user.id) {
+          bandBy.push(ban.bandBy[index]);
+        }
+      }
+      await this.prisma.user.update({
+          where : {
+            id : ban.id,
+          },
+          data : {
+            bandBy : bandBy,
+          }
+        })
       console.log(check);
       return `user unbanned succesfully.`
     }
     return `user is not in the ban list.`
 }
 
- async getChannelMessages(channel : string) : Promise<channelMessageDto[]> {
+ async getChannelMessages(channel : string, requester : string) : Promise<channelMessageDto[]> {
   console.log('getting messages of : ',channel);
-  
-  let tmp =  await this.prisma.channelMessage.findMany({
+  let user : UserDto = await this.prisma.user.findUnique({
+    where : {
+      id : requester,
+    }
+  })
+  let tmp : channelMessageDto[] =  await this.prisma.channelMessage.findMany({
     where : {
       channelName : channel
     }
   })
-  console.log("channel Messages : ", tmp);
-  return tmp
+  let data : channelMessageDto[] = []
+  for (let index : number = 0; index < tmp.length; index++) {
+    if (!user.bandBy.includes(tmp[index].userId) && !user.bandUsers.includes(tmp[index].userId)) {
+      data.push(tmp[index])
+    }
+  } 
+  return data;
  }
 
  async canSendMessageToChannel(id : string, channelName : string) : Promise<boolean> {

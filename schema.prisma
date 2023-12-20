@@ -28,6 +28,7 @@ model User {
   avatar                String ? @default("http://res.cloudinary.com/dvmxfvju3/image/upload/v1700925320/wu4zkfcugvnsbykwmzpw.jpg")
   achievements          String[]
   bandUsers             String[]
+  bandBy                String[]
   online                Boolean ? @default(false)
   level                 Float @default(0)
   channels              ChannelOnUser[]

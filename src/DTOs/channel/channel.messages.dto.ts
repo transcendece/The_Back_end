@@ -17,4 +17,5 @@ export class channelMessageDto {
     channelName : string
     
     userId  : string;
+
 }

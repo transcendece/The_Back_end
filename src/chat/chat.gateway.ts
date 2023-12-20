@@ -122,23 +122,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
                   if (check) {
                     let channelUsersIds : string[] = await this.channel.getChannelUsersId(message.channelName)
                     channelUsersIds.map((id)=> {
-                      let socket: Socket = this.clientsMap.get(id)
-                      if (socket) {
+                    let socket: Socket = this.clientsMap.get(id)
+                      if (socket && !_user.bandBy.includes(id) && !_user.bandUsers.includes(id)) {
                         message.sender = _user.username
                         sent = true;
                         socket.emit("channelMessage", message)
                       }
                     })
                   } else {
-                    console.log('no channel found');
                     let socket : Socket = this.clientsMap.get(_user.id)
                     if (socket){
-                      socket.emit("ERROR", "you can't Send Messages on this channel .... ")
+                      socket.emit("ERROR", "you can't Send This Message .... ");
                     }
                   }
                   if (sent) {
                     await this.channel.createChannelMessage(message, channelId, _user.id);
-                  }
+                }
             }
           }
         }

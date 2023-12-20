@@ -142,7 +142,7 @@ export class ChatController {
     async getChannelsMessages(@Req() req: Request & {user : UserDto}, @Body('_channel') _channel : string, @Res() res: Response) : Promise<any> {
         try {
             console.log("recieved : ",_channel);
-            let data : channelMessageDto[] =  await this.channel.getChannelMessages(_channel)
+            let data : channelMessageDto[] =  await this.channel.getChannelMessages(_channel, req.user.id)
             res.status(200).json(data);
         } catch (error) {
             console.log("erroriiiiiii ");

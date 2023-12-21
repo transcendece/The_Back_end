@@ -78,11 +78,11 @@ export class ProfileController {
                 playerAUsername : _playerAAUsername,
                 playerBUsername : _playerBAUsername,
             };
-                return tmp;
+            return tmp;
         }))
         profileData.matches = tmpMatches.filter((match) => match !== null);
-        console.log(profileData.matches);
-        console.log(_achievements)
+        // console.log(profileData.matches);
+        // console.log(_achievements)
         res.status(200).json(profileData)
         }
         catch(error) {

@@ -49,6 +49,7 @@ export class ChatController {
                             tmp.username = (_user.username == _sender.username) ? _reciever.username : _sender.username;
                             tmp.online = false;
                             tmp.id = 0
+                            tmp.ownerId = (_user.id == _sender.id) ? _reciever.id : _sender.id;
                             tmp.updatedAt = conversations[index].updatedAt
                             tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
                             data.push(tmp)

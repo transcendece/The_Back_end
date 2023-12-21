@@ -9,6 +9,8 @@ export class frontData {
 
     owner : string;
 
+    ownerId : string;
+
     online : boolean;
 
     updatedAt  : Date;

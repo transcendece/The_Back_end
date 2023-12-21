@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs
 import { Request, Response } from 'express';
 import { MatchDto } from 'src/DTOs/Match/match.dto';
 import { matchModel } from 'src/DTOs/Match/match.model';
+import { ProfileID } from 'src/DTOs/User/user.ProfileWithId';
 import { UserDto } from 'src/DTOs/User/user.dto';
 import { UserData } from 'src/DTOs/User/user.profileData';
 import { AchievementDto } from 'src/DTOs/achievement/achievement.dto';
@@ -12,7 +13,7 @@ import { FriendsRepository } from 'src/modules/friends/friends.repository';
 import { MatchesRepository } from 'src/modules/matches/matches.repository';
 import { FileService } from 'src/modules/readfile/readfile';
 import { UsersRepository } from 'src/modules/users/users.repository';
-import { boolean } from 'zod';
+import { boolean, date } from 'zod';
 
 @Controller('Profile')
 export class ProfileController {
@@ -101,10 +102,12 @@ export class ProfileController {
             let tmpUser : UserDto  = await this.user.getUserById(id)
             if (!tmpUser)
                 throw ('no such user.')
-            let profileData : UserData = {
+            let profileData : ProfileID = {
                 userData : tmpUser,
                 achievements : _achievements,
                 matches : [],
+                isBlocked : false,
+                isFriend : false,
             }
             profileData.matches = [];
             profileData.achievements.forEach((_achievement) => {
@@ -149,7 +152,9 @@ export class ProfileController {
                 console.log(_achievements)
                 let isBand : boolean = (req.user.bandUsers.includes(id) || req.user.bandBy.includes(id))
                 let isFreind : boolean = await this.friend.isFriend(req.user.id, id);
-                res.status(200).json({data : profileData, isBand : isBand, isFreind : isFreind})
+                profileData.isBlocked = isBand
+                profileData.isFriend = isFreind
+                res.status(200).json(profileData)
             }
             catch(error) {
                 res.status(400).json('Invalid data .')

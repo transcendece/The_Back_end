@@ -37,7 +37,7 @@ export class FriendsRepository {
         return tmp
     }
 
-    async getFriends (_id : string) : Promise<FriendDto[]> {
+    async getFriends (_id : string) : Promise<any> {
         let friends : FriendDto[] =  await this.prisma.friend.findMany({
             where: {
                 OR: [
@@ -45,6 +45,22 @@ export class FriendsRepository {
                     { inviteSenderId: _id },
                 ],
             },
+            include : {
+                inviteReciever : {
+                    select : {
+                        username : true,
+                        online : true,
+                        avatar : true,
+                    }
+                },
+                inviteSender : {
+                    select : {
+                        username : true,
+                        online : true,
+                        avatar : true,
+                    }
+                }
+            }
         });
         return friends;
     }

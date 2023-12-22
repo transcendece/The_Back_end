@@ -42,6 +42,7 @@ export class ProfileController {
             userData : tmpUser,
             achievements : _achievements,
             matches : [],
+            freinds : []
         }
         profileData.matches = [];
         profileData.achievements.forEach((_achievement) => {
@@ -81,9 +82,18 @@ export class ProfileController {
             };
             return tmp;
         }))
+        let FriendsList = await this.friend.getFriends(req.user.id);
+        for (let index : number = 0; index < FriendsList.length ; index++) {
+            profileData.freinds.push({
+                username : (req.user.id != FriendsList[index].inviteSenderId) ? FriendsList[index].inviteSender.username : FriendsList[index].inviteReciever.username,
+                id  : (req.user.id != FriendsList[index].inviteSenderId ) ? FriendsList[index].inviteSenderId : FriendsList[index].inviteRecieverId,
+                Online : (req.user.id != FriendsList[index].inviteSenderId ) ? FriendsList[index].inviteSender.online : FriendsList[index].inviteReciever.online,
+                avatar : (req.user.id != FriendsList[index].inviteSenderId ) ? FriendsList[index].inviteSender.avatar : FriendsList[index].inviteReciever.avatar,
+                InGame : false,
+            })
+        }
+        console.log("friends : ", profileData.freinds);
         profileData.matches = tmpMatches.filter((match) => match !== null);
-        // console.log(profileData.matches);
-        // console.log(_achievements)
         res.status(200).json(profileData)
         }
         catch(error) {

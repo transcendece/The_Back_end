@@ -18,10 +18,10 @@ import { boolean, date } from 'zod';
 @Controller('Profile')
 export class ProfileController {
     constructor (private user: UsersRepository,
-                 private achievement: AchievementRepository,
-                 private match: MatchesRepository,
-                 private file : FileService,
-                 private friend: FriendsRepository){}
+                private achievement: AchievementRepository,
+                private match: MatchesRepository,
+                private file : FileService,
+                private friend: FriendsRepository){}
 
     @Get()
     @UseGuards(JwtAuth)

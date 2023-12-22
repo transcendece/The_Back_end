@@ -12,6 +12,7 @@ import { ChannelsService } from "./chat.service";
 import { chatDto } from "src/DTOs/chat/chat.dto";
 import { AllExceptionsSocketFilter } from "./socket.exceptionHandler";
 import { UseFilters } from "@nestjs/common";
+import { MatchMaking } from "src/DTOs/User/matchMaking";
 
 @WebSocketGateway(8888, {
   cors: {
@@ -148,6 +149,62 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           console.log(error);
         }
       }
+      
+      @SubscribeMessage('SendGameInvite')
+      async HandleGameInvite(@MessageBody("recieverId") recieverId : string, @ConnectedSocket() client : Socket) {
+        try {
+
+          console.log("reciever : ", recieverId);
+          // need to check if the user is already in game or not before sending the notification 
+          let cookie : string = client.client.request.headers.cookie;
+          if (cookie) {
+            const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+            let user;
+            user =  this.jwtService.verify(jwt);
+            if (user) {
+              let customer : Socket = this.clientsMap.get(user.sub)
+              if (customer) {
+                customer.emit("GameInvite", "YOU HAVE BEEN INVITED TO PLAY ...")
+              }
+              else {
+                client.emit("ERROR", `${recieverId} is Not Online For the moment `)
+              }
+            }
+          }
+        } catch (error) {
+        }
+      }
+      
+      @SubscribeMessage('AccepteGameInvite')
+      async HandleGame(@MessageBody() game: MatchMaking, @ConnectedSocket() client : Socket) {
+        try {
+          console.log("creating game : ", game);
+          let cookie : string = client.client.request.headers.cookie;
+          if (cookie) {
+            const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+            let user;
+            user =  this.jwtService.verify(jwt);
+            if (user) {
+              // here we emit to the game gateway to start the game when these id's are connected
+              // emit to the users a redirection action ...
+              let playerA : Socket = this.clientsMap.get(game.playerA)
+              let playerB : Socket = this.clientsMap.get(game.playerB)
+              if (playerA && playerB) {
+                playerA.emit("EnterGame", "Ok")
+                playerB.emit("EnterGame", "Ok")
+              }
+              else {
+                if (!playerA && playerB)
+                  playerB.emit("ERROR", "Can't play Game the other player wen't offline ...");
+                else if (!playerB && playerA)
+                  playerA.emit("ERROR", "Can't play Game the other player wen't offline ...");
+              }
+            }
+          }
+        } catch (error) {
+        }
+      }
+
 
       @SubscribeMessage('SendMessage')
         async hanldeMessage(@MessageBody() message: messageDto, @ConnectedSocket() client : Socket) {

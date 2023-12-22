@@ -7,6 +7,12 @@ export class chatDto {
 
     sender : string;
 
+    senderId : string;
+
+    reciever : string;
+
+    recieverId : string;
+
     date    : Date;
 
     conversationId ? : string;

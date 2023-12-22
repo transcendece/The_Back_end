@@ -93,7 +93,7 @@ model Conversation {
 model Message {
   id                    String @id @default(uuid())
   conversationId        String
-  time                  DateTime ?//@default(now())
+  time                  DateTime ?
   content               String
   senderId              String
   recieverId            String

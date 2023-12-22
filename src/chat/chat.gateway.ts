@@ -159,8 +159,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
               user =  this.jwtService.verify(jwt);
               if (user) {
                   const sender = await this.user.getUserById(user.sub);
-                  const reciever = await this.user.getUserByUsername(message.recieverId);
+                  const reciever = await this.user.getUserById(message.recieverId);
                   if (!sender || !reciever || (sender.id == reciever.id)) {
+                    client.emit("ERROR", "YOU CAN't Text yourself Go buy a Note Book !")
                     throw("invalid data : Wrong sender or reciever info.")
                   }
                   if (reciever.bandUsers.includes(sender.id)) {
@@ -197,7 +198,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       async sendToSocket(message: messageDto) {
         try {
           console.log('message in send socket : ',message)
-          let _reciever : UserDto = await this.user.getUserByUsername(message.recieverId)
+          let _reciever : UserDto = await this.user.getUserById(message.recieverId)
+          console.log("reciever is : ", _reciever);
           if (_reciever) {
             const socket: Socket = this.clientsMap.get(_reciever.id);
             await this.message.CreateMesasge(message);
@@ -209,7 +211,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
               data.avatar = _reciever.avatar
               data.isOwner = false
               data.conversationId = message.conversationId 
-              socket.emit('RecieveMessage', data); // Replace 'your-event-name' with the actual event name
+              socket.emit('RecieveMessage', data);
             } else {
               this.conversation.updateConversationDate(message.conversationId)
               console.error(`Socket with ID ${message.recieverId} not found.`);

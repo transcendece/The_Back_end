@@ -43,16 +43,18 @@ export class ChatController {
                         let _sender : UserDto = await this.user.getUserById(conversations[index].senderId)
                         let _reciever : UserDto = await this.user.getUserById(conversations[index].recieverId)
                         if (_sender && _reciever && !_sender.bandUsers.includes(_reciever.id) && !_reciever.bandUsers.includes(_sender.id)) {
-                            tmp.Conversationid = conversations[index].id   
-                            tmp.owner = _user.username
+                            tmp.Conversationid = conversations[index].id;
+                            tmp.recieverId = _reciever.id;
+                            tmp.reciever = _reciever.username;
+                            tmp.senderId = _sender.id;
+                            tmp.sender = _sender.username;
                             tmp.avatar = (_user.username == _sender.username) ? _reciever.avatar : _sender.avatar;
                             tmp.username = (_user.username == _sender.username) ? _reciever.username : _sender.username;
                             tmp.online = false;
-                            tmp.id = 0
-                            tmp.ownerId = (_user.id == _sender.id) ? _reciever.id : _sender.id;
-                            tmp.updatedAt = conversations[index].updatedAt
-                            tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
-                            data.push(tmp)
+                            tmp.id = 0;
+                            tmp.updatedAt = conversations[index].updatedAt;
+                            tmp.messages = await this.message.getMessages(conversations[index], req.user.id);
+                            data.push(tmp);
                         }
                     }
                 }
@@ -62,8 +64,10 @@ export class ChatController {
                     empty.Conversationid = null;
                     empty.avatar = null;
                     empty.online = false;
-                    empty.owner = null;
-                    empty.username = null;
+                    empty.username = "";
+                    empty.recieverId = "";
+                    empty.senderId = "";
+                    empty.sender = "",
                     res.status(200).json(empty);
                     return
                 }
@@ -205,7 +209,7 @@ export class ChatController {
                     for (let index : number = 0; index < data.bandUsers.length ; index++) {
                         let tmpUser : UserDto = await this.user.getUserById(data.bandUsers[index]);
                         if (tmpUser)
-                            banUsernames.push(tmpUser.username) 
+                            banUsernames.push(tmpUser.username)
                     }
                 }
                 data.bandUsers = banUsernames;
